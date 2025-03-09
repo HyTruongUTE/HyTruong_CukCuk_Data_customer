@@ -1,0 +1,51 @@
+name: Crawl Customer Data Infocom
+on:
+  schedule:
+    - cron: '0 1,6 * * *'  # Chạy vào 8h sáng (01 UTC) và 1h chiều (06 UTC) theo giờ Việt Nam (GMT+7)
+  workflow_dispatch:  # Cho phép chạy thủ công
+
+jobs:
+  crawl-and-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}  # Dùng Personal Access Token để có quyền push
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install chromium
+
+      - name: Run crawler
+        run: python crawl_datacustomer.py
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Stash changes before pull
+        run: |
+          git add .
+          git stash --include-untracked  # Lưu tạm thay đổi để tránh xung đột
+          git pull origin master --rebase
+          git stash pop || echo "No stashed changes to apply"  # Khôi phục nếu có thay đổi
+
+      - name: Commit and Push changes
+        run: |
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m "Update customer data [skip ci]"
+            git push origin master
+          else
+            echo "No changes to commit"
+          fi
