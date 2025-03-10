@@ -66,7 +66,7 @@ def extract_address_components(address):
 
     for i in range(len(address_parts) - 1, -1, -1):
         part = address_parts[i]
-        if "Quận" in part or "Huyện" or "Thành phố" in part:
+        if "Quận" in part or "Huyện" in part or "Thành phố" in part:
             if part in quan_dac_biet:
                 district = part  # Giữ nguyên chữ "Quận" nếu thuộc danh sách đặc biệt
             else:
