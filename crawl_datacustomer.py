@@ -126,6 +126,10 @@ def scrape_infocom(num_pages=1):
                 address = address_element.text_content().strip() if address_element else ""
                 country, city, district, ward, street = extract_address_components(address)
                 
+                # Kiểm tra nếu cả Mã số thuế và Tên công ty đều rỗng, bỏ qua công ty này
+                if not name and not tax_code:
+                    continue
+                
                 company_data = {col: "" for col in template_columns}
                 company_data.update({
                     "Mã số thuế (*)": tax_code,
