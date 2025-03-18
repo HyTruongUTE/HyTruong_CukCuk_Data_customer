@@ -107,7 +107,7 @@ def scrape_infocom(num_pages=1):
         for i in range(1, num_pages + 1):
             url = BASE_URL + str(i)
             print(f"Đang truy cập: {url}")
-            page.goto(url, timeout=60000)
+            page.goto(url, timeout=120000)
             page.wait_for_load_state("networkidle")
             
             companies = page.query_selector_all(".main-content-paging")
