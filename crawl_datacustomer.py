@@ -116,6 +116,8 @@ def scrape_infocom(num_pages=1):
             except TimeoutError:
                 print(f"Lỗi Timeout khi truy cập: {url}, bỏ qua trang này...")
                 continue
+            page.goto(url, timeout=120000)
+            page.wait_for_load_state("networkidle")
             
             companies = page.query_selector_all(".main-content-paging")
             
