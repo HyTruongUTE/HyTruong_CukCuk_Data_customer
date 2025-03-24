@@ -5,6 +5,7 @@ import time
 import pathlib
 import pandas as pd
 import re
+import random
 
 # URL của trang Infocom
 BASE_URL = "https://infocom.vn/ma-nganh-nghe/5610/trang-"
@@ -16,7 +17,6 @@ tinh_thanh_list = [
 
 # Danh sách quận đặc biệt giữ nguyên chữ "Quận"
 quan_dac_biet = [f"Quận {i}" for i in range(1, 13)]
-
 
 # Danh sách cột theo Account_Template.xlsx
 template_columns = pd.read_excel("./Account_Template.xlsx", engine="openpyxl").columns.tolist()
@@ -99,7 +99,9 @@ def save_to_excel(data):
 def scrape_infocom(num_pages=1):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        context = browser.new_context()
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+        )
         page = context.new_page()
 
         all_companies = []
@@ -107,8 +109,13 @@ def scrape_infocom(num_pages=1):
         for i in range(1, num_pages + 1):
             url = BASE_URL + str(i)
             print(f"Đang truy cập: {url}")
-            page.goto(url, timeout=60000)
-            page.wait_for_load_state("networkidle")
+            
+            try:
+                page.goto(url, timeout=120000)
+                page.wait_for_load_state("networkidle", timeout=60000)
+            except TimeoutError:
+                print(f"Lỗi Timeout khi truy cập: {url}, bỏ qua trang này...")
+                continue
             
             companies = page.query_selector_all(".main-content-paging")
             
@@ -126,7 +133,6 @@ def scrape_infocom(num_pages=1):
                 address = address_element.text_content().strip() if address_element else ""
                 country, city, district, ward, street = extract_address_components(address)
                 
-                # Kiểm tra nếu cả Mã số thuế và Tên công ty đều rỗng, bỏ qua công ty này
                 if not name and not tax_code:
                     continue
                 
@@ -145,14 +151,14 @@ def scrape_infocom(num_pages=1):
                 })
                 all_companies.append(company_data)
             
-            time.sleep(2)
+            time.sleep(random.uniform(2, 5))  # Thêm độ trễ để tránh bị chặn
         
         browser.close()
         save_to_excel(all_companies)
 
 # Hàm main để chạy chương trình
 def main():
-    num_pages = 2
+    num_pages = 2  # Số trang muốn cào
     scrape_infocom(num_pages)
     
 if __name__ == "__main__":
