@@ -7,7 +7,7 @@ import pandas as pd
 import re
 
 # URL của trang Infocom
-BASE_URL = "https://infocom.vn/ma-nganh-nghe/5610/trang-1"
+BASE_URL = "https://infocom.vn/ma-nganh-nghe/5610/trang-"
 
 # Danh sách tỉnh/thành phố ở Việt Nam
 tinh_thanh_list = [
@@ -96,7 +96,7 @@ def save_to_excel(data):
     print(f"Dữ liệu đã được lưu vào: {filepath}")
 
 # Hàm cào dữ liệu từ trang Infocom
-def scrape_infocom(num_pages=1):
+def scrape_infocom(start_page=1, end_page=10):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context()
@@ -104,7 +104,7 @@ def scrape_infocom(num_pages=1):
 
         all_companies = []
         
-        for i in range(1, num_pages + 1):
+        for i in range(start_page, end_page + 1):
             url = BASE_URL + str(i)
             print(f"Đang truy cập: {url}")
             page.goto(url, timeout=120000)
@@ -152,8 +152,9 @@ def scrape_infocom(num_pages=1):
 
 # Hàm main để chạy chương trình
 def main():
-    num_pages = 10
-    scrape_infocom(num_pages)
+    start_date = 481
+    end_date = 510
+    scrape_infocom(start_date, end_date)
     
 if __name__ == "__main__":
     main()
